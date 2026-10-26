@@ -1,0 +1,43 @@
+POST http://localhost:3001/api/v1 HTTP/1.1
+Content-Type: application/json
+
+{
+    "url": "https://www.youtube.com/watch?v=3ExDEeSnyvE&t=6496s"
+}
+###
+#----------------------------------------
+# //Redis Container shell
+# docker exec -it url_shortner-redis-1 redis-cli
+# //now issuing raw Redis commands directly, bypassing your Go app entirely, to see the actual stored data
+# //Inside that prompt, run:
+# SELECT 0
+# //Redis has 16 numbered databases (0–15) by default, all within the same server — 
+# //your app uses DB 0 for the URL cache (CreateClient(0)) and DB 1 for rate limiting (CreateClient(1)). 
+# //SELECT 0 switches your current session to the same DB your Cache is writing to.
+# //Then:
+# GET jekooh
+# //Expected output — the exact long URL, quoted:
+# "https://www.youtube.com/watch?v=3ExDEeSnyvE&t=5596s"
+# //This proves the Set call in ShortenURL actually persisted the data, independent of whether ResolveURL can retrieve it — 
+# //isolating "is it stored" from "is it retrieved" as two separate facts.
+# //While you're in here, also check:
+# TTL jekooh
+# //Should return a positive number of seconds (close to 24 * 3600 = 86400, counting down) — confirms the 24-hour expiry was actually applied.
+# //Exit the Redis shell when done:
+# exit
+-----------------------------------
+# use PowerShell's native HTTP cmdlet, which builds the JSON for you:
+
+# powershell
+# for ($i = 1; $i -le 10; $i++) {
+#     Write-Output "--- Request $i ---"
+#     $body = @{ url = "https://example.com/page$i" } | ConvertTo-Json
+#     try {
+#         $response = Invoke-RestMethod -Uri "http://localhost:3001/api/v1" -Method Post -Body $body -ContentType "application/json"
+#         $response | ConvertTo-Json
+#     } catch {
+#         Write-Output "Status: $($_.Exception.Response.StatusCode.value__)"
+#         $_.ErrorDetails.Message
+#     }
+#     Write-Output ""
+# }

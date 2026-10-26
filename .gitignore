@@ -1,0 +1,6 @@
+.env
+*.exe
+main
+vendor/
+.idea/
+.vscode/
